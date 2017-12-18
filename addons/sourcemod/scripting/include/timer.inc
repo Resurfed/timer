@@ -25,8 +25,8 @@ stock void FormatTime(float time, char[] buffer, int maxlength)
         minutes = RoundToFloor(time / 60.0);
     }
 
-	Format(buffer, maxlength, "%s%02i:", buffer, minutes);
-	Format(buffer, maxlength, "%s%05.2f", buffer, time);
+    Format(buffer, maxlength, "%s%02i:", buffer, minutes);
+    Format(buffer, maxlength, "%s%05.2f", buffer, time);
 }
 
 stock void FormatTimeComparision(float time, float compare_time, char[] buffer, maxlength) 
