@@ -57,13 +57,15 @@ public Plugin myinfo =
 
 public void OnPluginStart() 
 {
+    LoadTranslations("timer-map.phrases");
+
     cvar_api_url = CreateConVar("timer_api_url", "", "The API URL");
     cvar_api_key = CreateConVar("timer_api_key", "", "The API key");
     
     AutoExecConfig(true);
     
-    event_zone_enter = CreateGlobalForward("OnZoneEnter", ET_Event, Param_Cell, Param_Cell, Param_Cell, Param_Cell);
-    event_zone_exit = CreateGlobalForward("OnZoneExit", ET_Event, Param_Cell, Param_Cell, Param_Cell, Param_Cell);
+    event_zone_enter = CreateGlobalForward("OnTimerZoneEnter", ET_Event, Param_Cell, Param_Cell, Param_Cell, Param_Cell);
+    event_zone_exit = CreateGlobalForward("OnTimerZoneExit", ET_Event, Param_Cell, Param_Cell, Param_Cell, Param_Cell);
     event_map_info_update = CreateGlobalForward("OnMapInfoUpdate", ET_Event, Param_Cell, Param_Cell, Param_Cell, Param_Cell, Param_Cell, Param_Cell, Param_Cell);
 
     RegConsoleCmd("sm_triggers", Command_ShowTriggers);
@@ -249,7 +251,7 @@ public void OnZonesLoaded(HTTPResponse response, any value)
 public Action Command_ShowTriggers(int client, int args) 
 {
     draw_triggers[client] = !draw_triggers[client];
-    PrintToChat(client, "Timer | %s triggers.", g_showtriggers[client] ? "Showing" : "Hiding");
+    PrintToChat(client, "%t", g_showtriggers[client] ? "Enabled Trigger" : "Disabled Trigger");
 }
 
 //set custom trigger name
@@ -257,7 +259,7 @@ public Action Command_TriggerName(int client, int args)
 {
     if (!args)
     {
-        PrintToChat(client, "Error | No argument.");
+        PrintToChat(client, "%t", "No Argument");
     }
 
     char name[32];
@@ -266,12 +268,12 @@ public Action Command_TriggerName(int client, int args)
     
     if (type == Zone_Unknown) 
     {
-        PrintToChat(client, "Warning | Could not interpret '%s'.", zoneName);
+        PrintToChat(client, "%t", "Invalid Zone Name", name);
         return; 
     }
     
     g_draw_type[client] = type;
-    PrintToChat(client, "Info | Zone info Set.");
+    PrintToChat(client, "%t", "Zone Info Set");
     ShowZoneMenu(client);
 }
 
@@ -280,13 +282,13 @@ public Action Command_FilterName(int client, int args)
 {
     if (!args) 
     {
-        PrintToChat(client, "Info | Zone cache cleared.");
-        draw_zone_filter[client] = "";
+        Format(draw_zone_filter, sizeof(draw_zone_filter[]), "");
+        PrintToChat(client, "%t", "Zone Cache Cleared");
         return;
     }
     
     GetCmdArgString(draw_zone_filter[client], sizeof draw_zone_filter[]);
-    PrintToChat(client, "Info | Filter name set as '%s'.", draw_zone_filter[client]);
+    PrintToChat(client, "%t", "Filter Name Set", draw_zone_filter[client]);
 }
 
 public Action Command_InsertMap(int client, int args)
@@ -298,7 +300,7 @@ public Action Command_InsertMap(int client, int args)
 
     if (args !=  6) 
     {
-        PrintToChat(client, "Info | Tier(1-6) Checkpoints Type(0 - Staged, 1 - Linear) \"Author\" Bonuses ZonesBaked(0, 1)");
+        PrintToChat(client, "%t", "Insert Map Help");
         return;
     }
 
@@ -338,10 +340,10 @@ void ShowZoneMenu(int client)
 
     char title[64];
     Format(title, sizeof(title), "<Draw Zone Menu>\n \n");
-    Format(title, sizeof(title), "%sType: %s \n", title, draw_zone_type_names[draw_zone_type[client] + 1]);
-    Format(title, sizeof(title), "%sValue: %s \n", title, draw_zone_value[client]);
-    Format(title, sizeof(title), "%sVelocity Limit: %s \n", title, draw_zone_maxvel[client] ? "True" : "False");
-    Format(title, sizeof(title), "%sFilter: %s \n", title, draw_zone_filter[client]);
+    Format(title, sizeof(title), "%sType: %s \n \n", title, draw_zone_type_names[draw_zone_type[client] + 1]);
+    Format(title, sizeof(title), "%sValue: %s \n \n", title, draw_zone_value[client]);
+    Format(title, sizeof(title), "%sVelocity Limit: %s \n \n", title, draw_zone_maxvel[client] ? "True" : "False");
+    Format(title, sizeof(title), "%sFilter: %s \n \n", title, draw_zone_filter[client]);
     Format(title, sizeof(title), "%sSnapping: %s \n \n", title, grid_size[client]);
 
     menu.SetTitle(title);
@@ -464,7 +466,7 @@ void SaveZone(int client)
     int index = AddZoneToCache(zone);
     StoreZone(client, zone, index);
     DeployZone(index);
-    PrintToChat(client, "Info | Zone created.");
+    PrintToChat(client, "%t", "Zone Created");
 }
 
 void StoreZone(int client, Zone zone, int index) 
@@ -500,7 +502,7 @@ public void OnZoneInserted(HTTPResponse response, any data)
     Zone zone = view_as<Zone>(response.Data);
     (view_as<Zone>(g_zones.Get(index))).id = zone.id;
     
-    PrintToChatAll("<info>Info |<message> Zone <int>#%i<message> created.", zone.id);   
+    PrintToChatAll("%t", "Zone Inserted", zone.id);
     delete zone;    
 }
 
@@ -557,8 +559,8 @@ public int MenuHandler_ZoneList(Menu menu, MenuAction action, int client, int ch
     return 0;
 }
 
-void ShowZoneInfo(int client, int index) {
-    
+void ShowZoneInfo(int client, int index) 
+{    
     float start[3], end[3];
     char filter[32], zone_id[10], buffer[384];
     
@@ -568,8 +570,12 @@ void ShowZoneInfo(int client, int index) {
     zone.GetFilterName(filter, sizeof filter);
     
     FormatEx(zone_id, sizeof zone_id, "%i", zone.id);
-    FormatEx(buffer, sizeof buffer, "<Custom Zone>\n \nZone ID : %i\n \n \nFilter Name : %s\n \nMin : %.1f %.1f %.1f\n \nMax : %.1f %.1f %.1f \n \n", zone.id, filter, start[0], start[1], start[2], end[0], end[1], end[2]);
-    
+    Format(buffer, sizeof(buffer), "<Custom Zone>\n \n");
+    Format(buffer, sizeof(buffer), "%sZone ID: %i\n \n", buffer, zone.id);
+    Format(buffer, sizeof(buffer), "%sFilter: %s\n \n", buffer, filter);
+    Format(buffer, sizeof(buffer), "%sStart: %.1f %.1f %.1f\n \n", buffer, start[0], start[1], start[2]);
+    Format(buffer, sizeof(buffer), "%sEnd: %.1f %.1f %.1f\n \n", buffer, end[0], end[1], end[2]);
+
     Menu menu = new Menu(MenuHandler_ZoneInfo);
     menu.SetTitle(buffer);
     menu.AddItem(zone_id, "Delete Trigger", (zone.id == -1) ? ITEMDRAW_DISABLED : ITEMDRAW_DEFAULT);
@@ -704,7 +710,7 @@ void DestroyTrigger(int index)
     }
 }
 
-public void ToggleBakedTriggerHooks (bool enable) 
+void ToggleBakedTriggerHooks(bool enable) 
 {
     if (enable && !triggers_hooked) 
     {
@@ -720,64 +726,45 @@ public void ToggleBakedTriggerHooks (bool enable)
     }
 }
 
-void DrawLaserBox(float start[3], float end[3], int color[4], float life, bool force) {
-    
-    float point[8][3];
+void DrawLaserBox(float start[3], float end[3], int color[4], float lifetime, bool force) 
+{   
     float size = 3.0;
-    
-    point[0][0] = end[0];
-    point[0][1] = end[1];
-    point[0][2] = start[2];
-    
-    point[1][0] = start[0];
-    point[1][1] = end[1];
-    point[1][2] = start[2];
-    
-    point[2][0] = end[0];
-    point[2][1] = start[1];
-    point[2][2] = start[2];
-    
-    point[3][0] = start[0];
-    point[3][1] = start[1];
-    point[3][2] = start[2];
-    
-    point[4][0] = end[0];
-    point[4][1] = end[1];
-    point[4][2] = end[2] + ORIGIN_BUFFER;
-    
-    point[5][0] = start[0];
-    point[5][1] = end[1];
-    point[5][2] = end[2] + ORIGIN_BUFFER;
-    
-    point[6][0] = end[0];
-    point[6][1] = start[1];
-    point[6][2] = end[2] + ORIGIN_BUFFER;
-    
-    point[7][0] = start[0];
-    point[7][1] = start[1];
-    point[7][2] = end[2] + ORIGIN_BUFFER;
-    
-    TE_SetupBeamPoints(point[4], point[5], g_beam, 0, 0, 0, life, size, size, 0, 0.0, color, 0); TE_SendToAllowed(force, 0.0);
-    TE_SetupBeamPoints(point[4], point[6], g_beam, 0, 0, 0, life, size, size, 0, 0.0, color, 0); TE_SendToAllowed(force, 0.0);
-    TE_SetupBeamPoints(point[7], point[6], g_beam, 0, 0, 0, life, size, size, 0, 0.0, color, 0); TE_SendToAllowed(force, 0.0);
-    TE_SetupBeamPoints(point[7], point[5], g_beam, 0, 0, 0, life, size, size, 0, 0.0, color, 0); TE_SendToAllowed(force, 0.0);
-    TE_SetupBeamPoints(point[0], point[1], g_beam, 0, 0, 0, life, size, size, 0, 0.0, color, 0); TE_SendToAllowed(force, 0.0);
-    TE_SetupBeamPoints(point[0], point[2], g_beam, 0, 0, 0, life, size, size, 0, 0.0, color, 0); TE_SendToAllowed(force, 0.0);
-    TE_SetupBeamPoints(point[0], point[4], g_beam, 0, 0, 0, life, size, size, 0, 0.0, color, 0); TE_SendToAllowed(force, 0.0);
-    TE_SetupBeamPoints(point[3], point[2], g_beam, 0, 0, 0, life, size, size, 0, 0.0, color, 0); TE_SendToAllowed(force, 0.0);
-    TE_SetupBeamPoints(point[3], point[1], g_beam, 0, 0, 0, life, size, size, 0, 0.0, color, 0); TE_SendToAllowed(force, 0.0);
-    TE_SetupBeamPoints(point[3], point[7], g_beam, 0, 0, 0, life, size, size, 0, 0.0, color, 0); TE_SendToAllowed(force, 0.0);
-    TE_SetupBeamPoints(point[1], point[5], g_beam, 0, 0, 0, life, size, size, 0, 0.0, color, 0); TE_SendToAllowed(force, 0.0);
-    TE_SetupBeamPoints(point[2], point[6], g_beam, 0, 0, 0, life, size, size, 0, 0.0, color, 0); TE_SendToAllowed(force, 0.0);
-}
+    end[2] += ORIGIN_BUFFER;
+    float vertices[6][3]
 
-void TE_SendToAllowed(bool force, float delay) 
-{
-    if (force) 
+    for (int i = 0; i < 3; i++)
     {
-        return TE_SendToAll(delay);
+        vertices[i] = start
+        vertices[i][i]= end[i]	
+        vertices[i+3] = start;
+        vertices[i+3][i] = end[i];
+
+        DrawBeam(start, vertices[i], color, lifetime, force);
+        DrawBeam(end, vertices[i + 3], color, lifetime, force);
     }
 
+    DrawBeam(vertices[0], vertices[4], color, lifetime, force);
+    DrawBeam(vertices[0], vertices[5], color, lifetime, force);
+    DrawBeam(vertices[3], vertices[1], color, lifetime, force);
+    DrawBeam(vertices[3], vertices[2], color, lifetime, force);
+}
+
+void DrawBeam(float start[3], float end[3], color[4], float lifetime, bool force)
+{
+    TE_SetupBeamPoints(start, end, g_beam, 0, 0, 0, life, size, size, 0, 3.0, color, 0); 
+    
+    if (force)
+    {
+        TE_SendToAll(0.0);
+    }
+    else
+    {
+        TE_SendToAllowed(force, 0.0);
+    }
+}
+
+void TE_SendToAllowed(float delay) 
+{
     int total_clients = 0;
     int[] clients = new int[MaxClients];
     

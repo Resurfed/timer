@@ -1,0 +1,56 @@
+"Phrases"
+{
+
+    "Enabled Trigger"
+    {
+        "en"                "Showing Triggers."
+    }
+
+    "Disabled Trigger"
+    {
+        "en"                "Hiding Triggers."
+    }
+
+    "Zone Created"
+    {
+        "en"                "Zone Created."
+    }
+
+    "Zone Inserted"
+    {
+        "#format"           "{1:i}"
+        "en"                "Zone {1} created."
+    }
+
+    "Invalid Zone Name"
+    {
+        "#format"           "{1:s}"
+        "en"                "Could not interpet '{1}'." 
+    }
+
+    "No Argument"
+    {
+        "en"                "No Argument."
+    }
+
+    "Zone Info Set"
+    {
+        "en"                "Zone info set."
+    }
+
+    "Zone Cache Cleared"
+    {
+        "en"                "Zone cache cleared."
+    }
+
+    "Filter Name Set"
+    {
+        "#format"           "{1:s}"
+        "en"                "Filter name set as '{1}'."
+    }  
+
+    "Insert Map Help"
+    {
+        "en"                "<Tier(1 - 6)> <Checkpoints> <Type(0 - Staged, 1 - Linear)> <\"Author\"> <Bonuses> <Baked_Zones(0, 1)>"
+    }
+}
