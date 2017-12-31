@@ -3,7 +3,7 @@
 #endif
 #define _timer_map_methodmaps_included
 
-#include <timersurf>
+#include <timer>
 #include <ripext>
 
 enum MapType {
@@ -118,19 +118,23 @@ methodmap MapInfo < JSONObject
 		}
 	}
 	
-	public void GetName(char[] buffer, int size) {
+	public void GetName(char[] buffer, int size) 
+	{
 		this.GetString("name", buffer, size);
 	}
 	
-	public void SetName(char[] map_name) {
+	public void SetName(char[] map_name) 
+	{
 		this.SetString("name", map_name);
 	}
 	
-	public void GetAuthor(char[] buffer, int size) {
+	public void GetAuthor(char[] buffer, int size) 
+	{
 		this.GetString("author", buffer, size);
 	}
 	
-	public void SetAuthor(char[] author) {
+	public void SetAuthor(char[] author) 
+	{
 		this.SetString("author", author);
 	}
 }
@@ -183,11 +187,11 @@ methodmap Zone < JSONObject
 	{
 		public get()
 		{
-			return this.GetInt("velocity");
+			return this.GetInt("limit_speed");
 		}
 		public set(int value)
 		{
-			this.SetInt("velocity", value);
+			this.SetInt("limit_speed", value);
 		}
 	}
 	
@@ -203,26 +207,30 @@ methodmap Zone < JSONObject
 		}
 	}
 	
-	public void GetTargetName(char[] buffer, int size) {
+	public void GetTargetName(char[] buffer, int size) 
+	{
 		this.GetString("target_name", buffer, size);
 	}
 	
-	public void SetTargetName(char[] target_name) {
+	public void SetTargetName(char[] target_name) 
+	{
 		this.SetString("target_name", target_name);
 	}
 	
-	public void GetFilterName(char[] buffer, int size) {
+	public void GetFilterName(char[] buffer, int size) 
+	{
 		this.GetString("filter_name", buffer, size);
 	}
 	
-	public void SetFilterName(char[] filter_name) {
+	public void SetFilterName(char[] filter_name) 
+	{
 		this.SetString("filter_name", filter_name);
 	}
 	
 	public void GetStartCoordinates(float vector[3]) 
 	{
 		char buffer[75];
-		this.GetString("min_cord", buffer, sizeof buffer);
+		this.GetString("start", buffer, sizeof buffer);
 		StringToVector(vector, buffer, "|");
 	}
 	
@@ -230,13 +238,13 @@ methodmap Zone < JSONObject
 	{	
 		char buffer[75];
 		VectorToString(buffer, sizeof buffer, vector, "|")
-		this.SetString("min_cord", buffer);
+		this.SetString("start", buffer);
 	}
 
 	public void GetEndCoordinates(float vector[3]) 
 	{
 		char buffer[75];
-		this.GetString("max_cord", buffer, sizeof buffer);
+		this.GetString("end", buffer, sizeof buffer);
 		StringToVector(vector, buffer, "|");
 	}
 	
@@ -244,7 +252,7 @@ methodmap Zone < JSONObject
 	{
 		char buffer[75];
 		VectorToString(buffer, sizeof buffer, vector, "|")
-		this.SetString("max_cord", buffer);
+		this.SetString("end", buffer);
 	}
 }
 

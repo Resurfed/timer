@@ -4,6 +4,9 @@
 #define _timer_map_included_
 
 #define ORIGIN_BUFFER 100
+#define DEFAULT_GRID_SNAP 32
+#define MAX_SNAP_LIMIT 256
+#define STATIC_ZONE_REFRESH 0.5
 
 enum DrawMode 
 {
