@@ -49,6 +49,17 @@ char zone_type_names[13][] =
     "No Jump" 
 };
 
+enum VoteMenuChoice {
+	MenuChoice_StartDraw = 0,
+	MenuChoice_EndDraw,
+	MenuChoice_Upload,
+	MenuChoice_ToggleSnapping,
+	MenuChoice_IncreaseGrid,
+	MenuChoice_DecreaseGrid,
+	MenuChoice_ZoneList,
+	MenuChoice_Reset
+}
+
 /**
  * Called when a player enters zone.
  *

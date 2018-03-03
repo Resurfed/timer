@@ -5,18 +5,18 @@
 
 #include <ripext>
 
-enum RequestResponse {
+enum ResponseInfo {
     Request_Success,
     Request_MalformedJSON,
-    Request_NoResults,
+    Request_EmptyResultSet,
     Request_InvalidResponse
 }
 
-JSONOBject GetGetResponseData(HttPResponse response, char[] event_name, RequestResponse &req_response)
+stock JSONArray GetGetResponseResultsArray(HttPResponse response, ResponseInfo &req_response, char[] event_name = null)
 {
     if (response.Status != HTTPStatus_OK) 
     { 
-        LogError("Invalid response on %s Get. Response %i.", event_name, response.Status);
+        LogError("Invalid response on %s Get Request. Response %i.", event_name, response.Status);
         req_response = Request_InvalidResponse;
         return null; 
     } 
@@ -28,24 +28,26 @@ JSONOBject GetGetResponseData(HttPResponse response, char[] event_name, RequestR
         return null; 
     }
 
-    JSONObject json_response = view_as<JSONObject>(response.Data);
+    JSONObject response_data = view_as<JSONObject>(response.Data);
 
-    if (!json_response.GetInt("count")) 
+    if (!response_data.GetInt("count"))
     {
-        delete json_response;
-        req_response = Request_NoResponseData;
+        req_response = Request_EmptyResultSet;
+        delete response_data;
         return null;
     }
 
     req_response = Request_Success;     
-    return json_response;
+    JSONArray results = view_as<JSONArray>(response_data.Get("results"));
+    delete response_data;
+    return results;
 }
 
-JSONObject GetPostResponseData(HTTPResponse response, char[] event_name)
+stock JSONObject GetPostResponseObject(HTTPResponse response, ResponseInfo req_response, char[] event_name)
 {
     if (response.Status != HTTPStatus_Created) 
     { 
-        LogError("Invalid response on %s Post. Response %i.", event_name, response.Status);
+        LogError("Invalid response on %s Post Request. Response %i.", event_name, response.Status);
         req_response = Request_InvalidResponse;
         return; 
     } 

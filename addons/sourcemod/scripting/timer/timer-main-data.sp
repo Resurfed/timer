@@ -1,35 +1,28 @@
 void LoadServerInfo()
 {
+    int arg_size = (str_len(g_serverIP) * 3) + 1;
+    char[] formatted_arg = char[arg_size];
+    URLEncode(g_serverIP, formatted_arg, arg_size);
+
     char buffer[128];
-    Format(buffer, sizeof(buffer), "servers/?Address=%s", g_map_name);
+    Format(buffer, sizeof(buffer), "servers/?Address=%s", formatted_arg);
     http_client.Get(buffer, OnServerLoad);
 }
 
 public void OnServerLoad(HTTPResponse response, any value) 
 { 
-    if (response.Status != HTTPStatus_OK) 
-    { 
-        LogError("Invalid response on Server Load. Response %i.", response.Status);
-        return; 
-    } 
+    ResponseInfo response_info;
+    JSONArray results = GetGetResponseResultsArray(response, info, "server");
 
-    if (response.Data == null) 
-    { 
-        LogError("Malformed JSON");
-        return; 
+    if (response_info == Request_EmptyResultSet)
+    {
+        InsertServer();
     }
 
-    JSONObject json_response = view_as<JSONObject>(response.Data);
- 
-    if (!json_response.GetInt("count")) 
+    if (response_info != Request_Success)
     {
-        delete json_response;
-        InsertServer();
         return;
     }
-
-    JSONArray results = view_as<JSONArray>(json_response.Get("results"));
-    delete json_response;
 
     g_server_info = results.get(0);
     delete results;
@@ -51,68 +44,39 @@ void InsertServer()
     delete server;
 }
 
-public void OnMapInsert(HTTPResponse response, any value) 
-{
-    if (response.Status != HTTPStatus_Created) 
-    { 
-        LogError("Invalid response on map creation. Response %i.", response.Status);
-        return; 
-    } 
- 
-    if (response.Data == null) 
-    { 
-        LogError("Malformed JSON");
-        return; 
-    }
-
-    g_server_info = view_as<MapInfo>(response.Data);
-}
-
 void LoadClient(int client)
 {
     char auth[32];
     GetClientAuthId(client, AuthId_Steam2, auth, sizeof(auth), true);
 
+    int arg_size = (str_len(auth) * 3) + 1;
+    char[] formatted_arg = char[arg_size];
+    URLEncode(auth, formatted_arg, arg_size);
+
     char buffer[128];
-    Format(buffer, sizeof(buffer), "servers/steamid=%s", auth);
+    Format(buffer, sizeof(buffer), "servers/steamid=%s", formatted_arg);
     http_client.Get(buffer, OnClientLoad, client);
 }
 
-public void OnClientLoad(HTTPResponse response, any client) 
-{ 
-    if (response.Status != HTTPStatus_OK) 
-    { 
-        LogError("Invalid response on Player Load. Response %i.", response.Status);
-        return; 
-    } 
+public void OnClientLoad(HTTPResponse response, any client)
+{
+    ResponseInfo response_info;
+    JSONArray results = GetGetResponseResultsArray(response, info, "client");
 
-    if (response.Data == null) 
-    { 
-        LogError("Malformed JSON");
-        return; 
-    }
-
-    JSONObject json_response = view_as<JSONObject>(response.Data);
- 
-    if (!json_response.GetInt("count")) 
+    if (response_info == Request_EmptyResultSet)
     {
-        delete json_response;
         InsertClient();
         return;
     }
-
-    JSONArray results = view_as<JSONArray>(json_response.Get("results"));
-    delete json_response;
+    else if (response_info != Request_Success)
+    {
+        return;
+    }
 
     g_client_info[client] = results.get(0);
     delete results;
 
     LoadClientRecords(client);
-}
-
-void LoadClientRecords(int client)
-{
-
 }
 
 void InsertClient(int client)

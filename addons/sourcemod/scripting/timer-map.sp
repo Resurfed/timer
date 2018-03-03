@@ -5,6 +5,7 @@
 #include <timer>
 #include <timer-map>
 #include <timer-map-methodmaps>
+#include <easy-request>
 
 #pragma semicolon 1
 #pragma newdecls required
@@ -214,44 +215,39 @@ public void OnWebAPIFound(HTTPResponse response, any value)
 
 void LoadMapConfiguration() 
 {
+
+    int arg_size = (str_len(g_map_name) * 3) + 1;
+    char[] formatted_arg = char[arg_size];
+    URLEncode(g_map_name, formatted_arg, arg_size);
+
     char buffer[128];
-    Format(buffer, sizeof(buffer), "maps/?name=%s", g_map_name);
+    Format(buffer, sizeof(buffer), "maps/?name=%s", arg_size);
     http_client.Get(buffer, OnMapLoad);
 }
 
-public void OnMapLoad(HTTPResponse response, any value) 
-{ 
-    if (response.Status != HTTPStatus_OK) 
-    { 
-        LogError("Invalid response on Map Load. Response %i.", response.Status);
-        return; 
-    } 
+public void OnMapLoad(HTTPResponse response, any value)
+{
+    ResponseInfo response_info;
+    JSONArray results = GetGetResponseResultsArray(response, info, "map");
 
-    if (response.Data == null) 
-    { 
-        LogError("Malformed JSON");
-        return; 
-    }
- 
-    JSONObject json_response = view_as<JSONObject>(response.Data);
- 
-    if (!json_response.GetInt("count")) 
+    if (response_info == Request_EmptyResultSet)
     {
-        delete json_response;
         InsertMap();
         return;
     }
-    
-    JSONArray results = view_as<JSONArray>(json_response.Get("results"));
-    delete json_response;
-    g_map_info = view_as<MapInfo>(results.Get(0));
+    else if (response_info != Request_Success)
+    {
+        return;
+    }
+
+    g_map_info = results.Get(0);
     delete results;
-    
+
     if (g_map_info.enable_baked_triggers && !g_baked_triggers_hooked) 
     {
         HookBakedTriggers(true);
     }
-    
+
     LoadZones();
 }
 
@@ -260,24 +256,21 @@ void InsertMap()
     MapInfo map = new MapInfo();
     map.SetName(g_map_name);
     http_client.Post("maps/", map, OnMapInsert);
+    delete map;
 }
 
 public void OnMapInsert(HTTPResponse response, any value) 
 {
-    if (response.Status != HTTPStatus_Created) 
-    { 
-        LogError("Invalid response on map creation. Response %i.", response.Status);
-        return; 
-    } 
- 
-    if (response.Data == null) 
-    { 
-        LogError("Malformed JSON");
-        return; 
-    }
+    ResponseInfo response_info;
+    JSONObject json_object = GetPostResponseObject(response, info, "map");
 
-    g_map_info = view_as<MapInfo>(response.Data);
-     
+    if (response_info != Request_Success) 
+    {   
+        return;
+    } 
+
+    g_map_info = view_as<MapInfo>(json_object);
+
     if (g_map_info.enable_baked_triggers && !g_baked_triggers_hooked) 
     {
         HookBakedTriggers(true);
@@ -288,6 +281,12 @@ public void OnMapInsert(HTTPResponse response, any value)
 
 void LoadZones() 
 {
+    /* In case of plugin reload */
+    if (g_round_started) 
+    {
+        DestroyAllTriggers();
+    }
+
     char buffer[128];
     Format(buffer, sizeof buffer, "maps/zones/?map=%i", g_map_info.id);
     http_client.Get(buffer, OnZonesLoaded);
@@ -295,35 +294,14 @@ void LoadZones()
 
 public void OnZonesLoaded(HTTPResponse response, any value) 
 {
-    if (response.Status != HTTPStatus_OK) 
-    { 
-        LogError("Invalid response on Zone Load. Response %i.", response.Status);
-        return; 
+    ResponseInfo response_info;
+    JSONArray results = GetGetResponseResultsArray(response, info, count, "zone");
+
+    if (response_info != Request_Success) 
+    {   
+        return;
     } 
 
-    if (response.Data == null) 
-    { 
-        LogError("Malformed JSON");
-        return; 
-    }
- 
-    //plugin reloaded
-    if (g_round_started) 
-    {
-        DestroyAllTriggers();
-    }
-    
-    JSONObject json_response = view_as<JSONObject>(response.Data);
-    JSONArray results = view_as<JSONArray>(json_response.Get("results"));
-    delete json_response;
- 
-    if (results == null) 
-    {
-        delete results;
-        return;
-    }
- 
-    //todo - its already in json, no need to convert to arraylist
     for (int i = 0; i < results.Length; i++) 
     {
         int index = AddZoneToCache(view_as<Zone>(results.Get(i)));
@@ -471,17 +449,11 @@ public Action Command_ZoneMenu(int client, int args)
 void ShowZoneMenu(int client)
 {
     Menu menu = new Menu(MenuHandler_ZoneMenu);
-
     char title[128];
     Format(title, sizeof(title), "<Draw Zone Menu>\n \n");
     Format(title, sizeof(title), "%sType: %s \n \n", title, zone_type_names[view_as<int>(g_draw_zone_type[client]) + 1]);
     Format(title, sizeof(title), "%sValue: %i \n \n", title, g_draw_zone_value[client]);
-    
-    if (g_draw_zone_filter[client][0])
-    {
-        Format(title, sizeof(title), "%sFilter: %s \n \n", title, g_draw_zone_filter[client]);
-    }
-
+    Format(title, sizeof(title), "%sFilter: %s \n \n", title, g_draw_zone_filter[client]);
     Format(title, sizeof(title), "%sVelocity Limit: %s \n \n", title, g_draw_zone_maxvel[client] ? "True" : "False");
     Format(title, sizeof(title), "%sSnapping: %i \n \n", title, g_grid_size[client]);
 
@@ -503,7 +475,7 @@ void ShowZoneMenu(int client)
         menu.AddItem("", "Decrease Grid\n ", ITEMDRAW_DISABLED);
     }
     
-    menu.AddItem("", "Trigger List\n ");
+    menu.AddItem("", "Zone List\n ");
     menu.AddItem("", "Reset\n ");
     menu.AddItem("", "Close");
     menu.Pagination = MENU_NO_PAGINATION;
@@ -514,48 +486,48 @@ public int MenuHandler_ZoneMenu(Menu menu, MenuAction action, int client, int ch
 {
     if (action == MenuAction_Select)
     {
-        if (choice == 0)
+        if (choice == MenuChoice_StartDraw)
         {
             StartZoneDraw(client);
             ShowZoneMenu(client);
         }
 
-        else if (choice == 1)
+        else if (choice == MenuChoice_EndDraw)
         {
             EndZoneDraw(client);
             ShowZoneMenu(client);
         }
 
-        else if (choice == 2)
+        else if (choice == MenuChoice_Upload)
         {
             SaveZone(client);
             ShowZoneMenu(client);
         }
 
-        else if (choice == 3)
+        else if (choice == MenuChoice_ToggleSnapping)
         {
             g_grid_snapping[client] = !g_grid_snapping[client];
             ShowZoneMenu(client);
         }
 
-        else if (choice == 4)
+        else if (choice == MenuChoice_IncreaseGrid)
         {
             g_grid_size[client] = g_grid_size[client] < MAX_SNAP_LIMIT ? g_grid_size[client] * 2 : MAX_SNAP_LIMIT;
             ShowZoneMenu(client);
         }
 
-        else if (choice == 5)
+        else if (choice == MenuChoice_DecreaseGrid)
         {
             g_grid_size[client] = RoundToCeil(g_grid_size[client] / 2.0);
             ShowZoneMenu(client);
         }
 
-        else if (choice == 6)
+        else if (choice == MenuChoice_ZoneList)
         {
             ShowZoneList(client); 
         }
 
-        else if (choice == 7)
+        else if (choice == MenuChoice_Reset)
         {
             g_draw_zone_mode[client] = DrawMode_Stopped;
             ShowZoneMenu(client);
@@ -572,7 +544,6 @@ public int MenuHandler_ZoneMenu(Menu menu, MenuAction action, int client, int ch
 
 void StartZoneDraw(int client) 
 {
-    
     if (g_draw_zone_mode[client] != DrawMode_Active) 
     {
         CreateTimer(0.1, DrawDevZone, client, TIMER_REPEAT);
@@ -628,39 +599,26 @@ void SaveZone(int client)
 
 void StoreZone(int client, Zone zone, int index) 
 {
-    DataPack pack = new DataPack();
-    pack.WriteCell(client);
-    pack.WriteCell(index);
-    http_client.Post("maps/zones/", zone, OnZoneInserted, pack);
+    http_client.Post("maps/zones/", zone, OnZoneInserted, index);
 }
 
-public void OnZoneInserted(HTTPResponse response, any data) 
+public void OnZoneInserted(HTTPResponse response, any value) 
 {
-    if (response.Status != HTTPStatus_Created) 
-    { 
-        LogError("Invalid response on zone insertion. Response %i.", response.Status);
-        return; 
-    } 
- 
-    if (response.Data == null) 
-    {
-        LogError("Malformed JSON");
-        return; 
-    }
- 
-    DataPack pack = data;
-    pack.Reset();
-    pack.ReadCell();
-    int index = pack.ReadCell();
-    delete pack;
-
-    Zone zone = view_as<Zone>(response.Data);
-    (view_as<Zone>(g_zones.Get(index))).id = zone.id;
+    ResponseInfo response_info;
+    JSONObject json_object = GetPostResponseObject(response, req_response, "zone");
     
-    PrintToChatAll("%t", "Zone Inserted", zone.id);
-    delete zone;    
-}
+    if (response_info != Request_Success) 
+    {
+        return;
+    }
 
+    PrintToChatAll("%t", "Zone Inserted", zone.id);
+    Zone zone = view_as<Zone>(json_object);
+    Zone active_zone = view_as<Zone>(g_zones.Get(value));
+
+    active_zone.id = zone.id;
+    delete zone;
+}
 
 void DeleteZone(int client, int zoneID) 
 {
@@ -814,14 +772,12 @@ public Action DrawDevZone(Handle Timer, any data)
         case DrawMode_Active:  
         {
             float temp_zone_max[3];
+
             if (g_grid_snapping[data]) 
-            {
                 GetClientSnappedOrigin(data, temp_zone_max, g_grid_size[data], true);
-            }
-            else
-            {
+            else 
                 GetClientAbsOrigin(data, temp_zone_max);
-            }
+                
             DrawLaserBox(g_draw_zone_start[data], temp_zone_max, {255, 255, 255, 255}, 0.1, true);
         }
         case DrawMode_Frozen:  
@@ -1302,7 +1258,6 @@ void CallMapLoadEvent()
     Call_PushCell(g_map_info.prevent_prehop);
     Call_PushCell(g_map_info.active);
     Call_Finish();
-    
 }
 
 public int nativecall_getMapInfo(Handle plugin, int numParams) 

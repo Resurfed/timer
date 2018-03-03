@@ -123,9 +123,9 @@ methodmap MapInfo < JSONObject
 		this.GetString("name", buffer, size);
 	}
 	
-	public void SetName(char[] map_name) 
+	public void SetName(char[] buffer) 
 	{
-		this.SetString("name", map_name);
+		this.SetString("name", buffer);
 	}
 	
 	public void GetAuthor(char[] buffer, int size) 
@@ -133,9 +133,9 @@ methodmap MapInfo < JSONObject
 		this.GetString("author", buffer, size);
 	}
 	
-	public void SetAuthor(char[] author) 
+	public void SetAuthor(char[] buffer) 
 	{
-		this.SetString("author", author);
+		this.SetString("author", buffer);
 	}
 }
 
@@ -212,9 +212,9 @@ methodmap Zone < JSONObject
 		this.GetString("target_name", buffer, size);
 	}
 	
-	public void SetTargetName(char[] target_name) 
+	public void SetTargetName(char[] buffer) 
 	{
-		this.SetString("target_name", target_name);
+		this.SetString("target_name", buffer);
 	}
 	
 	public void GetFilterName(char[] buffer, int size) 
@@ -222,9 +222,9 @@ methodmap Zone < JSONObject
 		this.GetString("filter_name", buffer, size);
 	}
 	
-	public void SetFilterName(char[] filter_name) 
+	public void SetFilterName(char[] buffer) 
 	{
-		this.SetString("filter_name", filter_name);
+		this.SetString("filter_name", buffer);
 	}
 	
 	public void GetStartCoordinates(float vector[3]) 
