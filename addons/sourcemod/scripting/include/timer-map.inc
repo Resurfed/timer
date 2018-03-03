@@ -49,7 +49,7 @@ char zone_type_names[13][] =
     "No Jump" 
 };
 
-enum VoteMenuChoice {
+enum ZoneMenuChoice {
 	MenuChoice_StartDraw = 0,
 	MenuChoice_EndDraw,
 	MenuChoice_Upload,

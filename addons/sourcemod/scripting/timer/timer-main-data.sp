@@ -1,7 +1,7 @@
 void LoadServerInfo()
 {
     int arg_size = (str_len(g_serverIP) * 3) + 1;
-    char[] formatted_arg = char[arg_size];
+    char[] formatted_arg = new char[arg_size];
     URLEncode(g_serverIP, formatted_arg, arg_size);
 
     char buffer[128];
@@ -50,7 +50,7 @@ void LoadClient(int client)
     GetClientAuthId(client, AuthId_Steam2, auth, sizeof(auth), true);
 
     int arg_size = (str_len(auth) * 3) + 1;
-    char[] formatted_arg = char[arg_size];
+    char[] formatted_arg = new char[arg_size];
     URLEncode(auth, formatted_arg, arg_size);
 
     char buffer[128];

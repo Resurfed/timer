@@ -12,7 +12,7 @@ enum ResponseInfo {
     Request_InvalidResponse
 }
 
-stock JSONArray GetGetResponseResultsArray(HttPResponse response, ResponseInfo &req_response, char[] event_name = null)
+stock JSONArray GetGetResponseResultsArray(HTTPResponse response, ResponseInfo &req_response, char[] event_name)
 {
     if (response.Status != HTTPStatus_OK) 
     { 
@@ -49,16 +49,16 @@ stock JSONObject GetPostResponseObject(HTTPResponse response, ResponseInfo req_r
     { 
         LogError("Invalid response on %s Post Request. Response %i.", event_name, response.Status);
         req_response = Request_InvalidResponse;
-        return; 
+        return null; 
     } 
  
     if (response.Data == null) 
     { 
         LogError("Malformed JSON");
         req_response = Request_MalformedJSON;
-        return; 
+        return null; 
     }
     
     req_response = Request_Success;     
-    return response.Data;
+    return view_as<JSONObject>(response.Data);
 }

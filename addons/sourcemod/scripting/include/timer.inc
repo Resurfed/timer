@@ -13,7 +13,7 @@
 #define MAX_TOPTIMES 10
 #define DEFAULT_PRECISION 3
 
-#define UPDATE_URL    "http://resurfed.com/updater/timer/updatefile.txt"
+#define UPDATE_URL "http://resurfed.com/updater/timer/updatefile.txt"
 stock float ZERO_VECTOR[3];
 
 enum TimeType {
@@ -175,14 +175,14 @@ stock void URLEncode(char[] buffer, char[] url, int maxlength)
 	url[url_index] = 0;
 }
 
-char GetBase16Character(int num)
+stock char GetBase16Character(int num)
 {
-	const char[] hex = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+	char hex[] = "0123456789ABCDEF";
 
 	if (num >= 0 && num < 16)
 	{
 		return hex[num];
 	}
 
-	return 0;
+	return view_as<char>(0);
 }
