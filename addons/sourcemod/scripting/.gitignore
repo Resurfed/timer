@@ -55,3 +55,6 @@ include/tf2_stocks.inc
 compile.dat
 compile.exe
 spcomp.exe
+compiled/*
+*.smx
+.vscode
