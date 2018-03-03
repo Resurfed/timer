@@ -523,255 +523,255 @@ void TE_SendToAllowed(float delay)
 
 public void OnCustomStartTouch(const char[] output, int caller, int client, float delay) 
 {	
-	if (!IsValidClient(client)) 
+    if (!IsValidClient(client)) 
     {
-		return;
-	}
-	
-	char trigger_name[32];
-	GetEntPropString(caller, Prop_Data, "m_iName", trigger_name, sizeof trigger_name);
-	ReplaceString(trigger_name, sizeof trigger_name, "timer_zone_", "");
-	int index = StringToInt(trigger_name);
-	
-	Zone zone = g_zones.Get(index);
-	int fix_value = zone.value;
-	
-	if (zone.type == Zone_End && fix_value <= 0) 
+        return;
+    }
+    
+    char trigger_name[32];
+    GetEntPropString(caller, Prop_Data, "m_iName", trigger_name, sizeof trigger_name);
+    ReplaceString(trigger_name, sizeof trigger_name, "timer_zone_", "");
+    int index = StringToInt(trigger_name);
+    
+    Zone zone = g_zones.Get(index);
+    int fix_value = zone.value;
+    
+    if (zone.type == Zone_End && fix_value <= 0) 
     {
-		fix_value = g_map_info.checkpoints;
-	}
-	
-	Call_StartForward(event_zone_enter);
-	Call_PushCell(client);
-	Call_PushCell(zone.type);
-	Call_PushCell(fix_value);
-	Call_PushCell(zone.velocity);
-	Call_Finish();
+        fix_value = g_map_info.checkpoints;
+    }
+    
+    Call_StartForward(event_zone_enter);
+    Call_PushCell(client);
+    Call_PushCell(zone.type);
+    Call_PushCell(fix_value);
+    Call_PushCell(zone.velocity);
+    Call_Finish();
 }
 
 public void OnCustomEndTouch(const char[] output, int caller, int client, float delay) 
 {	
-	if (!IsValidClient(client)) 
+    if (!IsValidClient(client)) 
     {
-		return;
-	}
-	
-	char trigger_name[32];
-	GetEntPropString(caller, Prop_Data, "m_iName", trigger_name, sizeof(trigger_name));
-	ReplaceString(trigger_name, sizeof(trigger_name), "timer_zone_", "");
-	int index = StringToInt(trigger_name);
-	
-	Zone zone = g_zones.Get(index);
-	int fix_value = zone.value;
-	
-	if (zone.type == Zone_End && fix_value <= 0) 
+        return;
+    }
+    
+    char trigger_name[32];
+    GetEntPropString(caller, Prop_Data, "m_iName", trigger_name, sizeof(trigger_name));
+    ReplaceString(trigger_name, sizeof(trigger_name), "timer_zone_", "");
+    int index = StringToInt(trigger_name);
+    
+    Zone zone = g_zones.Get(index);
+    int fix_value = zone.value;
+    
+    if (zone.type == Zone_End && fix_value <= 0) 
     {
-		fix_value = g_map_info.checkpoints;
-	}
-	
-	Call_StartForward(event_zone_exit);
-	Call_PushCell(client);
-	Call_PushCell(zone.type);
-	Call_PushCell(fix_value);
-	Call_PushCell(zone.velocity);
-	Call_Finish();
+        fix_value = g_map_info.checkpoints;
+    }
+    
+    Call_StartForward(event_zone_exit);
+    Call_PushCell(client);
+    Call_PushCell(zone.type);
+    Call_PushCell(fix_value);
+    Call_PushCell(zone.velocity);
+    Call_Finish();
 }
 
 public void OnBakedStartTouch(const char[] output, int caller, int client, float delay) 
 {	
-	if (!IsValidClient(client)) 
+    if (!IsValidClient(client)) 
     {
-		return;
-	}
-	
-	char trigger_name[64]; int value; bool velocity_enabled;
-	GetEntPropString(caller, Prop_Data, "m_iName", trigger_name, sizeof trigger_name);
-	ZoneType type = ProcessLegacyZoneString(trigger_name, sizeof trigger_name, value, velocity_enabled);
-	
-	if (type == Zone_Unknown) 
+        return;
+    }
+    
+    char trigger_name[64]; int value; bool velocity_enabled;
+    GetEntPropString(caller, Prop_Data, "m_iName", trigger_name, sizeof trigger_name);
+    ZoneType type = ProcessLegacyZoneString(trigger_name, sizeof trigger_name, value, velocity_enabled);
+    
+    if (type == Zone_Unknown) 
     {
-		return;
-	}
-	
-	Call_StartForward(event_zone_enter);
-	Call_PushCell(client);
-	Call_PushCell(type);
-	Call_PushCell(value);
-	Call_PushCell(velocity_enabled);
-	Call_Finish();
+        return;
+    }
+    
+    Call_StartForward(event_zone_enter);
+    Call_PushCell(client);
+    Call_PushCell(type);
+    Call_PushCell(value);
+    Call_PushCell(velocity_enabled);
+    Call_Finish();
 }
 
 public void OnBakedEndTouch(const char[] output, int caller, int client, float delay) 
 {
-	if (!IsValidClient(client)) 
+    if (!IsValidClient(client)) 
     {
-		return;
-	}
-	
-	char trigger_name[64]; int value; bool velocity_enabled;
-	GetEntPropString(caller, Prop_Data, "m_iName", trigger_name, sizeof trigger_name);
-	ZoneType type = ProcessLegacyZoneString(trigger_name, sizeof trigger_name, value, velocity_enabled);
-	
-	if (type == Zone_Unknown) 
+        return;
+    }
+    
+    char trigger_name[64]; int value; bool velocity_enabled;
+    GetEntPropString(caller, Prop_Data, "m_iName", trigger_name, sizeof trigger_name);
+    ZoneType type = ProcessLegacyZoneString(trigger_name, sizeof trigger_name, value, velocity_enabled);
+    
+    if (type == Zone_Unknown) 
     {
-		return;
-	}
-	
-	Call_StartForward(event_zone_exit);
-	Call_PushCell(client);
-	Call_PushCell(type);
-	Call_PushCell(value);
-	Call_PushCell(velocity_enabled);
-	Call_Finish();
+        return;
+    }
+    
+    Call_StartForward(event_zone_exit);
+    Call_PushCell(client);
+    Call_PushCell(type);
+    Call_PushCell(value);
+    Call_PushCell(velocity_enabled);
+    Call_Finish();
 }
 
 //sorry
 ZoneType ProcessLegacyZoneString(char[] trigger_name, int max_length, int &value, bool &max_velocity) 
 {	
-	value = -1;
-	max_velocity = false;
-	
-	if (TruncateStringSearch(trigger_name, max_length, "cst_")) 
+    value = -1;
+    max_velocity = false;
+    
+    if (TruncateStringSearch(trigger_name, max_length, "cst_")) 
     {	
-		if (strcmp(trigger_name, "tele", true) == 0) 
+        if (strcmp(trigger_name, "tele", true) == 0) 
         {
-			return Zone_Tele;
-		}
-		
-		else if (strcmp(trigger_name, "nextstage", true) == 0) 
+            return Zone_Tele;
+        }
+        
+        else if (strcmp(trigger_name, "nextstage", true) == 0) 
         {
-			return Zone_NextStage;
-		}
-		
-		else if (strcmp(trigger_name, "restart", true) == 0) 
+            return Zone_NextStage;
+        }
+        
+        else if (strcmp(trigger_name, "restart", true) == 0) 
         {
-			return Zone_Restart;
-		}
-		
-		else if (TruncateStringSearch(trigger_name, max_length, "tostage ")) 
+            return Zone_Restart;
+        }
+        
+        else if (TruncateStringSearch(trigger_name, max_length, "tostage ")) 
         {
-			value = StringToInt(trigger_name);
-			return Zone_ToStage;
-		}
-		
-		else if (TruncateStringSearch(trigger_name, max_length, "tobonus ")) 
+            value = StringToInt(trigger_name);
+            return Zone_ToStage;
+        }
+        
+        else if (TruncateStringSearch(trigger_name, max_length, "tobonus ")) 
         {
-			value = StringToInt(trigger_name);
-			return Zone_ToBonus;
-		}
-		
-		else if (TruncateStringSearch(trigger_name, max_length, "nojump")) 
+            value = StringToInt(trigger_name);
+            return Zone_ToBonus;
+        }
+        
+        else if (TruncateStringSearch(trigger_name, max_length, "nojump")) 
         {
-			return Zone_NoJump;
-		}
-	}
-	
-	else if (TruncateStringSearch(trigger_name, max_length, "maxvelsoft")) 
+            return Zone_NoJump;
+        }
+    }
+    
+    else if (TruncateStringSearch(trigger_name, max_length, "maxvelsoft")) 
     {	
-		value = StringToInt(trigger_name);
-		return Zone_MaxVelocitySoft;
-	}
-	
-	else if (TruncateStringSearch(trigger_name, max_length, "maxvel ")
-		 || TruncateStringSearch(trigger_name, max_length, "vt_mv ")) 
+        value = StringToInt(trigger_name);
+        return Zone_MaxVelocitySoft;
+    }
+    
+    else if (TruncateStringSearch(trigger_name, max_length, "maxvel ")
+         || TruncateStringSearch(trigger_name, max_length, "vt_mv ")) 
     {
-		value = StringToInt(trigger_name);
-		return Zone_MaxVelocity;
-	}
-	
-	else if (strcmp(trigger_name, "end_zone", true) == 0) 
+        value = StringToInt(trigger_name);
+        return Zone_MaxVelocity;
+    }
+    
+    else if (strcmp(trigger_name, "end_zone", true) == 0) 
     {
-		value = g_map_info.checkpoints;
-		return Zone_End;
-	}
-	
-	else if (strcmp(trigger_name, "start_zone", true) == 0) 
+        value = g_map_info.checkpoints;
+        return Zone_End;
+    }
+    
+    else if (strcmp(trigger_name, "start_zone", true) == 0) 
     {	
-		value = 1;
-		max_velocity = true;
-		return Zone_Start;
-	}
-	
-	else if (strcmp(trigger_name, "start_zone TH", false) == 0) 
+        value = 1;
+        max_velocity = true;
+        return Zone_Start;
+    }
+    
+    else if (strcmp(trigger_name, "start_zone TH", false) == 0) 
     {	
-		value = 1;
-		return Zone_Start;
-	}
-	
-	else if (TruncateStringSearch(trigger_name, max_length, "stage")) 
+        value = 1;
+        return Zone_Start;
+    }
+    
+    else if (TruncateStringSearch(trigger_name, max_length, "stage")) 
     {	
-		value = StringToInt(trigger_name);
+        value = StringToInt(trigger_name);
 
-		if (ReplaceString(trigger_name, max_length, "_start", "", false)) 
+        if (ReplaceString(trigger_name, max_length, "_start", "", false)) 
         {	
-			max_velocity = (ReplaceString(trigger_name, max_length, " TH", "", false) == 0);
-			return Zone_Start;
-		}
-		else if (ReplaceString(trigger_name, max_length, "_end", "", false)) 
+            max_velocity = (ReplaceString(trigger_name, max_length, " TH", "", false) == 0);
+            return Zone_Start;
+        }
+        else if (ReplaceString(trigger_name, max_length, "_end", "", false)) 
         {
-			return Zone_End;
-		}
+            return Zone_End;
+        }
 
-		return Zone_Unknown;
-	}
-	
-	else if (TruncateStringSearch(trigger_name, max_length, "bonus")) 
+        return Zone_Unknown;
+    }
+    
+    else if (TruncateStringSearch(trigger_name, max_length, "bonus")) 
     {	
-		value = StringToInt(trigger_name);
-		
-		if (ReplaceString(trigger_name, max_length, "_start", "", false)) 
+        value = StringToInt(trigger_name);
+        
+        if (ReplaceString(trigger_name, max_length, "_start", "", false)) 
         {	
-			max_velocity = (ReplaceString(trigger_name, max_length, " TH", "", false) == 0);
-			return Zone_BStart;
-		}
-		else if (ReplaceString(trigger_name, max_length, "_end", "", false)) 
+            max_velocity = (ReplaceString(trigger_name, max_length, " TH", "", false) == 0);
+            return Zone_BStart;
+        }
+        else if (ReplaceString(trigger_name, max_length, "_end", "", false)) 
         {
-			return Zone_BEnd;
-		}
+            return Zone_BEnd;
+        }
 
-		return Zone_Unknown;
-	}
-	
-	else if (TruncateStringSearch(trigger_name, max_length, "checkpoint_")) 
+        return Zone_Unknown;
+    }
+    
+    else if (TruncateStringSearch(trigger_name, max_length, "checkpoint_")) 
     {
-		value = StringToInt(trigger_name) + 1;
-		return Zone_Start;
-	}
-	
-	return Zone_Unknown;
+        value = StringToInt(trigger_name) + 1;
+        return Zone_Start;
+    }
+    
+    return Zone_Unknown;
 }
 
 bool TruncateStringSearch(char[] buffer, int max_length, const char[] search) 
 {
-	int search_size = strlen(search);
-	int index;
+    int search_size = strlen(search);
+    int index;
 
-	for (index = 0; index < max_length; index++) 
+    for (index = 0; index < max_length; index++) 
     {
-		if (index >= search_size) 
+        if (index >= search_size) 
         {
-			break;
-		} 
+            break;
+        } 
 
-		if (buffer[index] != search[index]) 
+        if (buffer[index] != search[index]) 
         {
-			return false;
-		}
-	}
+            return false;
+        }
+    }
 
-	for (index = 0; index < max_length; index++) 
+    for (index = 0; index < max_length; index++) 
     {
-		if (index + search_size < max_length) 
+        if (index + search_size < max_length) 
         {
-			buffer[index] = buffer[index + search_size];
-		}
-		else 
+            buffer[index] = buffer[index + search_size];
+        }
+        else 
         {
-			buffer[index] = 0;
-			break;
-		}
-	}
-	return true;
+            buffer[index] = 0;
+            break;
+        }
+    }
+    return true;
 }
 
 void CallMapLoadEvent() 

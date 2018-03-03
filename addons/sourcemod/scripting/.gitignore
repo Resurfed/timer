@@ -58,3 +58,8 @@ spcomp.exe
 compiled/*
 *.smx
 .vscode
+include/regex.inc
+include/ripext.inc
+include/smjansson.inc
+include/ripext/*
+include/colors-extended.inc

@@ -12,7 +12,7 @@ void LoadServerInfo()
 public void OnServerLoad(HTTPResponse response, any value) 
 { 
     ResponseInfo response_info;
-    JSONArray results = GetGetResponseResultsArray(response, info, "server");
+    JSONArray results = GetGetResponseResultsArray(response, response_info, "server");
 
     if (response_info == Request_EmptyResultSet)
     {
@@ -61,7 +61,7 @@ void LoadClient(int client)
 public void OnClientLoad(HTTPResponse response, any client)
 {
     ResponseInfo response_info;
-    JSONArray results = GetGetResponseResultsArray(response, info, "client");
+    JSONArray results = GetGetResponseResultsArray(response, response_info, "client");
 
     if (response_info == Request_EmptyResultSet)
     {
